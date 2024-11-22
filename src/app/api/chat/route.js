@@ -1,6 +1,6 @@
 import { Anthropic } from '@anthropic-ai/sdk';
-import connectDB from '@/app/lib/mongoose';
-import FlashcardSet from '@/app/models/FlashcardSet';
+import connectDB from '../../lib/mongoose';
+import FlashcardSet from '../../models/FlashcardSet';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
