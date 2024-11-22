@@ -7,7 +7,8 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-const SYSTEM_PROMPT = `You are an AI tutor helping students learn. 
+const SYSTEM_PROMPT = `You are an AI tutor helping students learn.
+In this environment you have access to a tool called create_flashcard_set you can use to answer the user's question.
 When asked to create flashcards, use the create_flashcard_set tool. 
 Cues words to look for: "create flashcards", "generate flashcards", "make flashcards", and other variations.
 Do not skip using the create_flashcard_set tool when user ask you to generate or create flashcards/cards. 
@@ -84,8 +85,8 @@ export async function POST(request) {
       ],
     });
 
-    console.log(response.stop_reason);
-    console.log(response.content[0].input);
+    // console.log(response.stop_reason);
+    // console.log(response.content[0].input);
 
     // Check if Claude wants to use a tool
     if (response.stop_reason === 'tool_use') {
