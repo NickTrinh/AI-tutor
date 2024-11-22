@@ -9,11 +9,8 @@ const anthropic = new Anthropic({
 
 const SYSTEM_PROMPT = `You are an AI tutor helping students learn.
 In this environment you have access to a tool called create_flashcard_set you can use to answer the user's question.
-When asked to create flashcards, use the create_flashcard_set tool. 
-Cues words to look for: "create flashcards", "generate flashcards", "make flashcards", and other variations.
-Do not skip using the create_flashcard_set tool when user ask you to generate or create flashcards/cards. 
-If not asked to create flashcards, provide helpful educational responses without using tools. 
-Do not hallucinate or make things up.`;
+When asked to create flashcards, use the create_flashcard_set tool. Just use the tools, don't explain them.
+If not asked to create, don't create flashcards set and response as normal. Do not hallucinate or make things up.`;
 
 async function saveFlashcardSet(data) {
   console.log('Save flashcard set:', data);
