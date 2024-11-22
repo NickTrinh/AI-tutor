@@ -1,15 +1,29 @@
-export class FlashcardSet {
-  constructor(data) {
-    this.id = data.id;
-    this.title = data.title;
-    this.cards = data.cards || [];
-    this.createdAt = data.createdAt || new Date();
-  }
-}
+// src/app/models/FlashcardSet.js
+import mongoose from 'mongoose';
 
-export class Flashcard {
-  constructor(data) {
-    this.term = data.term;
-    this.definition = data.definition;
+const flashcardSchema = new mongoose.Schema({
+  term: {
+    type: String,
+    required: true
+  },
+  definition: {
+    type: String,
+    required: true
   }
-}
+});
+
+const flashcardSetSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true
+  },
+  cards: [flashcardSchema],
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+const FlashcardSet = mongoose.models.FlashcardSet || mongoose.model('FlashcardSet', flashcardSetSchema);
+
+export default FlashcardSet;

@@ -1,5 +1,6 @@
 import { Anthropic } from '@anthropic-ai/sdk';
-import clientPromise from '@/app/lib/mongodb';
+import connectDB from '@/app/lib/mongoose';
+import FlashcardSet from '@/app/models/FlashcardSet';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -12,23 +13,23 @@ const SYSTEM_PROMPT = `You are an AI tutor helping students learn. When asked to
   "cards": [
     {"term": "term1", "definition": "definition1"}
   ]
-}`;
+}.
+
+If not asked to create, don't create flashcards set and response as normal. Do not hallucinate or make things up.`;
 
 async function saveFlashcardSet(data) {
   try {
-    const client = await clientPromise;
-    const db = client.db("ai-tutor");
-    
-    const result = await db.collection("flashcard-sets").insertOne({
+    await connectDB();
+    const flashcardSet = new FlashcardSet({
       title: data.title,
       cards: data.cards,
-      createdAt: new Date()
     });
-    
+    await flashcardSet.save();
+
     return {
-      id: result.insertedId.toString(),
-      title: data.title,
-      cardCount: data.cards.length
+      id: flashcardSet._id.toString(),
+      title: flashcardSet.title,
+      cardCount: flashcardSet.cards.length,
     };
   } catch (error) {
     console.error('MongoDB save error:', error);
@@ -41,11 +42,11 @@ export async function POST(request) {
     const { messages } = await request.json();
 
     const response = await anthropic.messages.create({
-      model: "claude-3-sonnet-20240229",
+      model: 'claude-3-sonnet-20240229',
       max_tokens: 4096,
       temperature: 0.7,
       system: SYSTEM_PROMPT,
-      messages: messages.filter(msg => msg.role !== 'system')
+      messages: messages.filter(msg => msg.role !== 'system'),
     });
 
     const message = response.content[0].text;
@@ -53,11 +54,11 @@ export async function POST(request) {
     try {
       // Try to parse the entire message as JSON
       const data = JSON.parse(message);
-      if (data.type === "flashcard_set") {
+      if (data.type === 'flashcard_set') {
         const savedSet = await saveFlashcardSet(data);
         return Response.json({
           message: `Created flashcard set: ${data.title} with ${data.cards.length} cards`,
-          flashcardSet: savedSet
+          flashcardSet: savedSet,
         });
       }
     } catch (e) {
@@ -65,7 +66,6 @@ export async function POST(request) {
     }
 
     return Response.json({ message });
-
   } catch (error) {
     console.error('Chat API error:', error);
     return Response.json(
