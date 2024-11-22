@@ -9,6 +9,7 @@ const anthropic = new Anthropic({
 
 const SYSTEM_PROMPT = `You are an AI tutor helping students learn. 
 When asked to create flashcards, use the create_flashcard_set tool. 
+Cues words to look for: "create flashcards", "generate flashcards", "make flashcards", and other variations.
 Do not skip using the create_flashcard_set tool when user ask you to generate or create flashcards/cards. 
 If not asked to create flashcards, provide helpful educational responses without using tools. 
 Do not hallucinate or make things up.`;
@@ -41,7 +42,7 @@ export async function POST(request) {
     const response = await anthropic.messages.create({
       model: 'claude-3-sonnet-20240229',
       max_tokens: 4096,
-      temperature: 0,
+      temperature: 0.7,
       system: SYSTEM_PROMPT,
       messages: messages.map(msg => ({
         role: msg.role,
@@ -57,15 +58,21 @@ export async function POST(request) {
             properties: {
               title: {
                 type: 'string',
-                description: 'Title of the flashcard set',
+                description: 'Title of the flashcard set.',
               },
               cards: {
                 type: 'array',
                 items: {
                   type: 'object',
                   properties: {
-                    term: { type: 'string' },
-                    definition: { type: 'string' },
+                    term: {
+                      type: 'string',
+                      description: 'Questions on the topic.',
+                    },
+                    definition: {
+                      type: 'string',
+                      description: 'Answer to the question.',
+                    },
                   },
                   required: ['term', 'definition'],
                 },
