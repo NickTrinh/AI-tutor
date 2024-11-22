@@ -4,26 +4,28 @@ import mongoose from 'mongoose';
 const flashcardSchema = new mongoose.Schema({
   term: {
     type: String,
-    required: true
+    required: true,
   },
   definition: {
     type: String,
-    required: true
-  }
+    required: true,
+  },
 });
 
 const flashcardSetSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true
+    required: true,
   },
   cards: [flashcardSchema],
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-const FlashcardSet = mongoose.models.FlashcardSet || mongoose.model('FlashcardSet', flashcardSetSchema);
+const FlashcardSet =
+  mongoose.models.FlashcardSet ||
+  mongoose.model('FlashcardSet', flashcardSetSchema);
 
 export default FlashcardSet;
