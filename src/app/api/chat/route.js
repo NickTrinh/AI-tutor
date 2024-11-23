@@ -74,7 +74,7 @@ export async function POST(request) {
 
     // First API call to get tool use response
     const response = await anthropic.messages.create({
-      model: 'claude-3-sonnet-20240229',
+      model: 'claude-3-5-haiku-latest',
       max_tokens: 4096,
       temperature: 0.7,
       system: SYSTEM_PROMPT,
