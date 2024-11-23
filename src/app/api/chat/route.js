@@ -8,9 +8,45 @@ const anthropic = new Anthropic({
 });
 
 const SYSTEM_PROMPT = `You are an AI tutor helping students learn.
-In this environment you have access to a tool called create_flashcard_set you can use to answer the user's question.
-When asked to create flashcards, use the create_flashcard_set tool. Just use the tools, don't explain them.
-If not asked to create, don't create flashcards set and response as normal. Do not hallucinate or make things up.`;
+When a user asks to create flashcards, you MUST use the create_flashcard_set tool - do not respond with text.
+The create_flashcard_set tool is the only way to create flashcards.
+For all other questions, respond normally.
+Do not hallucinate or make things up.`;
+
+const tools = [
+  {
+    name: 'create_flashcard_set',
+    description:
+      'REQUIRED tool for creating flashcard sets. You MUST use this tool whenever the user wants to create, generate, or make flashcards. Do not respond with text for flashcard creation requests.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        title: {
+          type: 'string',
+          description: 'Title of the flashcard set.',
+        },
+        cards: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              term: {
+                type: 'string',
+                description: 'Questions on the topic.',
+              },
+              definition: {
+                type: 'string',
+                description: 'Answer to the question.',
+              },
+            },
+            required: ['term', 'definition'],
+          },
+        },
+      },
+      required: ['title', 'cards'],
+    },
+  },
+];
 
 async function saveFlashcardSet(data) {
   console.log('Save flashcard set:', data);
@@ -44,54 +80,18 @@ export async function POST(request) {
       system: SYSTEM_PROMPT,
       messages: messages.map(msg => ({
         role: msg.role,
-        content: typeof msg.content === 'string' ? msg.content : msg.content,
+        content: msg.content,
       })),
-      tools: [
-        {
-          name: 'create_flashcard_set',
-          description:
-            'Creates and saves a set of flashcards for studying. Use this tool when asked to make flashcards.',
-          input_schema: {
-            type: 'object',
-            properties: {
-              title: {
-                type: 'string',
-                description: 'Title of the flashcard set.',
-              },
-              cards: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    term: {
-                      type: 'string',
-                      description: 'Questions on the topic.',
-                    },
-                    definition: {
-                      type: 'string',
-                      description: 'Answer to the question.',
-                    },
-                  },
-                  required: ['term', 'definition'],
-                },
-              },
-            },
-            required: ['title', 'cards'],
-          },
-        },
-      ],
+      tools: tools,
     });
-
-    // console.log(response.stop_reason);
-    // console.log(response.content[0].input);
 
     // Check if Claude wants to use a tool
     if (response.stop_reason === 'tool_use') {
-      const toolCall = response.content[0].name;
+      const toolCall = response.content[1]?.name || response.content[0]?.name;
 
       if (toolCall === 'create_flashcard_set') {
         // Execute tool and get result
-        const sets = response.content[0].input;
+        const sets = response.content[1]?.input || response.content[0]?.input;
         const savedSet = await saveFlashcardSet(sets);
 
         return Response.json({
